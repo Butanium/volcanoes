@@ -64,9 +64,16 @@ let addGains x = let i, amount = x in
         List.iter (fun i -> Queue.add (i,amount /. 2.) queue) @@ getNeighbors i
     ) in
 
-let positionArr = Array.make numberoftiles 0. in
-let calcScore x = getScore x -. positionArr.(x) in
 
+
+
+let positionArr = Array.make numberoftiles 0. in
+
+    let isNearAllies i = let n = List.map (fun x -> positionArr.(x)>0.) @@ getNeighbors i  in List.fold_left (||) false n in
+let isNearAllies2 i =  List.fold_left (||) false @@
+    List.map (fun x -> positionArr.(x)>0. || isNearAllies x) @@ getNeighbors i
+    and countAllies x = List.fold_left (+.) 0. @@ List.map (fun t -> max 0. positionArr.(t)) @@ getNeighbors x in
+let calcScore x = getScore x -. positionArr.(x) -. countAllies x in
 while true do
     let t = Sys.time() in
 
@@ -78,6 +85,7 @@ while true do
     let intMoves = List.map toIndex moves and
         doubleGoals, simpleGoals = getDoubleAndSimple @@ myPositions in
 
+    let filteredMoves = List.filter isNearAllies2 intMoves in
 
     List.iter (fun i -> addGains (i, 100.)) @@
         List.map (fun x -> oppIndex x) myPositions;
@@ -89,7 +97,7 @@ while true do
             addGains (Queue.take basicQueue);
     done;
 
-    let sorted = List.sort (fun x y -> -compare (calcScore x) (calcScore y)) intMoves in
+    let sorted = List.sort (fun x y -> -compare (calcScore x) (calcScore y)) filteredMoves in
     match sorted with
     | [] -> print_endline "random";
     | x :: xs -> print_endline (toName x);
