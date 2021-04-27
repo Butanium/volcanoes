@@ -75,7 +75,6 @@ while true do
     (* Space-separated list of the volcano levels for every tile on the board (in index order); value will be positive for your volcanoes, negative for your opponent's volcanoes, or 0 if empty *)
     let moves = String.split_on_char ' ' @@ input_line stdin in (* Space-separate list of all valid moves in this position *)
     let myPositions = getMyPositions position in
-    prerr_endline @@ List.fold_left (^) "" @@ List.map string_of_int myPositions;
     let intMoves = List.map toIndex moves and
         doubleGoals, simpleGoals = getDoubleAndSimple @@ myPositions in
 
@@ -83,7 +82,7 @@ while true do
     List.iter (fun i -> addGains (i, 100.)) @@
         List.map (fun x -> oppIndex x) myPositions;
 
-    while Sys.time() -. t > 0.09 && not (Queue.is_empty basicQueue && Queue.is_empty priorityQueue) do
+    while Sys.time() -. t < 0.09 && not (Queue.is_empty basicQueue && Queue.is_empty priorityQueue) do
         if not (Queue.is_empty priorityQueue) then
             addGains (Queue.take priorityQueue)
         else
